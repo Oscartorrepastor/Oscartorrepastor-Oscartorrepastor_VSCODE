@@ -1,0 +1,268 @@
+import os
+import time
+
+def limpiar_pantalla():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def mostrar_menu():
+    print("=" * 60)
+    print("       TUTORIAL - MANEJO DE FICHEROS EN PYTHON")
+    print("=" * 60)
+    print("\n1. Métodos de Apertura de Archivos")
+    print("2. Método READ y READLINES")
+    print("3. Método WRITE y SEEK")
+    print("4. Método WRITELINES")
+    print("5. Manejo de Excepciones")
+    print("6. Salir")
+    print("\n" + "=" * 60)
+
+def tutorial_apertura_archivos():
+    limpiar_pantalla()
+    print("📂 MÉTODOS DE APERTURA DE ARCHIVOS")
+    print("=" * 50)
+    
+    # Crear carpeta de demostración
+    os.makedirs("TutorialFicheros", exist_ok=True)
+    
+    print("\n1. Modo 'r' (lectura)")
+    print("   Abre el archivo para lectura. Si no existe, da error.")
+    
+    # Demostración con try-except para evitar errores
+    try:
+        with open("TutorialFicheros/archivo_r.txt", "r") as f:
+            contenido = f.read()
+    except FileNotFoundError:
+        print("   ❌ Error: El archivo no existe (comportamiento esperado)")
+    
+    print("\n2. Modo 'w' (escritura)")
+    print("   Crea el archivo o lo sobrescribe si existe.")
+    
+    with open("TutorialFicheros/archivo_w.txt", "w") as f:
+        f.write("Contenido creado con modo 'w'")
+    print("   ✅ Archivo creado: TutorialFicheros/archivo_w.txt")
+    
+    print("\n3. Modo 'a' (anexar)")
+    print("   Añade contenido al final del archivo.")
+    
+    with open("TutorialFicheros/archivo_a.txt", "a") as f:
+        f.write("Línea 1 - añadida con modo 'a'\n")
+        f.write("Línea 2 - añadida después\n")
+    print("   ✅ Contenido añadido: TutorialFicheros/archivo_a.txt")
+    
+    print("\n4. Modo 'r+' (lectura y escritura)")
+    print("   Permite leer y escribir desde el principio.")
+    
+    with open("TutorialFicheros/archivo_r+.txt", "w") as f:
+        f.write("Contenido inicial\n")
+    
+    with open("TutorialFicheros/archivo_r+.txt", "r+") as f:
+        contenido = f.read()
+        f.write("Texto añadido con r+\n")
+    print("   ✅ Archivo modificado: TutorialFicheros/archivo_r+.txt")
+    
+    input("\n📍 Presiona Enter para continuar...")
+
+def tutorial_read_readlines():
+    limpiar_pantalla()
+    print("📖 MÉTODOS READ Y READLINES")
+    print("=" * 50)
+    
+    # Crear archivo de ejemplo
+    with open("TutorialFicheros/ejemplo_lectura.txt", "w") as f:
+        f.write("Línea 1: Método read() lee todo el contenido\n")
+        f.write("Línea 2: Método readlines() devuelve lista\n")
+        f.write("Línea 3: readlines mantiene los saltos de línea\n")
+        f.write("Línea 4: Última línea del archivo\n")
+    
+    print("\n📄 Contenido del archivo creado:")
+    print("─" * 40)
+    with open("TutorialFicheros/ejemplo_lectura.txt", "r") as f:
+        print(f.read())
+    
+    print("\n1. MÉTODO READ()")
+    print("   Lee todo el contenido como una sola cadena:")
+    with open("TutorialFicheros/ejemplo_lectura.txt", "r") as f:
+        contenido = f.read()
+        print(f"   Tipo: {type(contenido)}")
+        print(f"   Longitud: {len(contenido)} caracteres")
+        print(f"   Primeros 50 chars: {contenido[:50]}...")
+    
+    print("\n2. MÉTODO READLINES()")
+    print("   Lee el contenido como lista de líneas:")
+    with open("TutorialFicheros/ejemplo_lectura.txt", "r") as f:
+        lineas = f.readlines()
+        print(f"   Tipo: {type(lineas)}")
+        print(f"   Número de líneas: {len(lineas)}")
+        print(f"   Primera línea: {repr(lineas[0])}")
+    
+    print("\n3. DIFERENCIA ENTRE READ Y READLINES")
+    print("   read(): Una sola cadena con todo el contenido")
+    print("   readlines(): Lista donde cada elemento es una línea")
+    
+    input("\n📍 Presiona Enter para continuar...")
+
+def tutorial_write_seek():
+    limpiar_pantalla()
+    print("✏️ MÉTODOS WRITE Y SEEK")
+    print("=" * 50)
+    
+    # Crear archivo inicial
+    with open("TutorialFicheros/ejemplo_seek.txt", "w") as f:
+        f.write("Línea original 1\n")
+        f.write("Línea original 2\n")
+        f.write("Línea original 3\n")
+    
+    print("📄 Archivo original:")
+    with open("TutorialFicheros/ejemplo_seek.txt", "r") as f:
+        print(f.read())
+    
+    print("\n1. WRITE AL FINAL (comportamiento por defecto)")
+    with open("TutorialFicheros/ejemplo_seek.txt", "r+") as f:
+        contenido = f.read()
+        f.write("Texto añadido al final\n")
+    
+    print("   ✅ Texto añadido al final")
+    
+    print("\n2. USO DE SEEK() PARA ESCRIBIR AL PRINCIPIO")
+    with open("TutorialFicheros/ejemplo_seek.txt", "r+") as f:
+        contenido = f.read()
+        f.seek(0, 0)  # Ir al principio
+        f.write("TEXTO AL PRINCIPIO\\n")
+        f.write(contenido)
+    
+    print("   ✅ Texto insertado al principio")
+    
+    print("\n3. PARÁMETROS DE SEEK()")
+    print("   seek(offset, whence)")
+    print("   - offset: bytes a desplazar")
+    print("   - whence: 0=inicio, 1=actual, 2=final")
+    
+    print("\n   Ejemplos:")
+    print("   - seek(0): Ir al inicio")
+    print("   - seek(0, 2): Ir al final") 
+    print("   - seek(10): Ir al byte 10 desde inicio")
+    
+    print("\n📄 Archivo modificado:")
+    with open("TutorialFicheros/ejemplo_seek.txt", "r") as f:
+        print(f.read())
+    
+    input("\n📍 Presiona Enter para continuar...")
+
+def tutorial_writelines():
+    limpiar_pantalla()
+    print("📝 MÉTODO WRITELINES")
+    print("=" * 50)
+    
+    # Crear lista como en el PDF página 5
+    lista_lineas = [
+        "Primera línea creada con writelines\n",
+        "Segunda línea de la lista\n", 
+        "Tercera línea con salto de línea incluido\n"
+    ]
+    
+    print("📋 Lista a escribir:")
+    for i, linea in enumerate(lista_lineas, 1):
+        print(f"   {i}. {repr(linea)}")
+    
+    print("\n1. ESCRITURA CON WRITELINES")
+    with open("TutorialFicheros/ejemplo_writelines.txt", "w") as f:
+        f.writelines(lista_lineas)
+    
+    print("   ✅ Archivo creado con writelines")
+    
+    print("\n2. CONTENIDO RESULTANTE:")
+    with open("TutorialFicheros/ejemplo_writelines.txt", "r") as f:
+        contenido = f.read()
+        print(contenido)
+    
+    print("3. COMPARACIÓN CON WRITE:")
+    print("   - write(): Escribe una cadena")
+    print("   - writelines(): Escribe una lista de cadenas")
+    
+    input("\n📍 Presiona Enter para continuar...")
+
+def tutorial_excepciones():
+    limpiar_pantalla()
+    print("🚨 MANEJO DE EXCEPCIONES")
+    print("=" * 50)
+    
+    print("\n1. SIN MANEJO DE EXCEPCIONES:")
+    print("   Si intentamos abrir un archivo que no existe...")
+    
+    # Esto causaría un error, pero lo controlamos
+    try:
+        with open("archivo_inexistente.txt", "r") as f:
+            contenido = f.read()
+    except FileNotFoundError as e:
+        print(f"   ❌ Error: {e}")
+    
+    print("\n2. CON MANEJO DE EXCEPCIONES")
+    print("   Usando try...except FileNotFoundError:")
+    
+    nombre_fichero = "archivo_que_no_existe.txt"
+    try:
+        with open(nombre_fichero, 'r') as f:
+            print(f.read())
+    except FileNotFoundError:
+        print('   ✅ Mensaje controlado: No existe el fichero')
+    
+    print("\n3. EJEMPLO COMPLETO COMO EN EL PDF:")
+    
+    # Crear archivo como en el ejemplo del PDF
+    with open("TutorialFicheros/archivotext.txt", "w") as f:
+        f.write("Probando excepciones")
+    
+    # Intentar abrir archivo que SÍ existe
+    print("\n   Caso: Archivo EXISTE")
+    nombre_fichero = "TutorialFicheros/archivotext.txt"
+    try:
+        with open(nombre_fichero, 'r') as f:
+            print(f"   ✅ Contenido: {f.read()}")
+    except FileNotFoundError:
+        print('   No existe el fichero')
+    
+    # Intentar abrir archivo que NO existe  
+    print("\n   Caso: Archivo NO EXISTE")
+    nombre_fichero = "TutorialFicheros/archivo_inexistente.txt"
+    try:
+        with open(nombre_fichero, 'r') as f:
+            print(f.read())
+    except FileNotFoundError:
+        print('   ✅ No existe el fichero (manejado correctamente)')
+    
+    input("\n📍 Presiona Enter para continuar...")
+
+def main():
+    while True:
+        limpiar_pantalla()
+        mostrar_menu()
+        
+        try:
+            opcion = input("\nSelecciona una opción (1-6): ").strip()
+            
+            if opcion == "1":
+                tutorial_apertura_archivos()
+            elif opcion == "2":
+                tutorial_read_readlines()
+            elif opcion == "3":
+                tutorial_write_seek()
+            elif opcion == "4":
+                tutorial_writelines()
+            elif opcion == "5":
+                tutorial_excepciones()
+            elif opcion == "6":
+                print("\n¡Gracias por usar el tutorial de manejo de ficheros!")
+                print("Archivos de ejemplo generados en la carpeta: TutorialFicheros/")
+                break
+            else:
+                print("❌ Opción no válida. Por favor, selecciona 1-6.")
+                time.sleep(1)
+                
+        except KeyboardInterrupt:
+            print("\n\n👋 ¡Hasta pronto!")
+            break
+
+if __name__ == "__main__":
+    # Crear carpeta para los ejemplos
+    os.makedirs("TutorialFicheros", exist_ok=True)
+    main()

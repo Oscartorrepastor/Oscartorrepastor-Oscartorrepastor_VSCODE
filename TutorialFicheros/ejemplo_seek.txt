@@ -1,0 +1,4 @@
+TEXTO AL PRINCIPIO\nLínea original 1
+Línea original 2
+Línea original 3
+Texto añadido al final

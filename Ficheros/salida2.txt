@@ -1,0 +1,28 @@
+=== INFORMACIÓN SOBRE PALABRAS REPETIDAS ===
+
+PALABRAS REPETIDAS (ordenadas alfabéticamente):
+- agua: 617 repeticiones
+- arena: 617 repeticiones
+- bosque: 617 repeticiones
+- camino: 617 repeticiones
+- campo: 617 repeticiones
+- cielo: 618 repeticiones
+- estrella: 617 repeticiones
+- flor: 617 repeticiones
+- fuego: 617 repeticiones
+- hoja: 617 repeticiones
+- luz: 618 repeticiones
+- mar: 618 repeticiones
+- montaña: 617 repeticiones
+- nube: 617 repeticiones
+- piedra: 617 repeticiones
+- rama: 617 repeticiones
+- rio: 617 repeticiones
+- sol: 618 repeticiones
+- tierra: 618 repeticiones
+- viento: 617 repeticiones
+
+RESUMEN:
+Palabra(s) más repetida(s): sol, luz, cielo, mar, tierra
+Número de repeticiones: 618
+Total de palabras diferentes repetidas: 20

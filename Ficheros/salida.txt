@@ -1,0 +1,32 @@
+=== ANÁLISIS DEL ARCHIVO palabras.txt ===
+Número total de palabras: 12345
+Número total de vocales: 29008
+
+--- PALABRAS REPETIDAS ---
+'sol': 618 veces
+'luz': 618 veces
+'cielo': 618 veces
+'mar': 618 veces
+'tierra': 618 veces
+'montaña': 617 veces
+'rio': 617 veces
+'bosque': 617 veces
+'nube': 617 veces
+'estrella': 617 veces
+'arena': 617 veces
+'viento': 617 veces
+'flor': 617 veces
+'piedra': 617 veces
+'fuego': 617 veces
+'agua': 617 veces
+'camino': 617 veces
+'campo': 617 veces
+'hoja': 617 veces
+'rama': 617 veces
+
+--- PALABRA/S MÁS REPETIDA/S ---
+'sol': 618 veces
+'luz': 618 veces
+'cielo': 618 veces
+'mar': 618 veces
+'tierra': 618 veces

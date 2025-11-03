@@ -1,0 +1,3 @@
+Primera línea creada con writelines
+Segunda línea de la lista
+Tercera línea con salto de línea incluido

@@ -1,0 +1,2 @@
+Línea 1 - añadida con modo 'a'
+Línea 2 - añadida después

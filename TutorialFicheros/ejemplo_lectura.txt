@@ -1,0 +1,4 @@
+Línea 1: Método read() lee todo el contenido
+Línea 2: Método readlines() devuelve lista
+Línea 3: readlines mantiene los saltos de línea
+Línea 4: Última línea del archivo
