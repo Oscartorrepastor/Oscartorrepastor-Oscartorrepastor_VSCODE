@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Equipos de Fútbol</title>
+    <!-- Bootstrap 5 solo CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <!-- Header -->
+      <div class="row mb-4">
+        <div class="col">
+          <h1 class="text-center">⚽ Equipos de Fútbol por País</h1>
+          <p class="text-center text-muted">
+            Selecciona un país para ver sus equipos y jugadores
+          </p>
+        </div>
+      </div>
+
+      <!-- Panel de control -->
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Seleccionar País</h5>
+              <div class="mb-3">
+                <label class="form-label">País:</label>
+                <select id="countrySelect" class="form-select">
+                  <option value="" disabled selected>Cargando países...</option>
+                </select>
+              </div>
+              <button id="loadTeamsBtn" class="btn btn-primary w-100" disabled>
+                Cargar Equipos
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Búsqueda</h5>
+              <div class="mb-3">
+                <label class="form-label">Buscar equipo:</label>
+                <input
+                  type="text"
+                  id="teamSearch"
+                  class="form-control"
+                  placeholder="Escribe nombre del equipo..."
+                />
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span id="teamsCount" class="badge bg-primary">0 equipos</span>
+                <div class="btn-group">
+                  <button
+                    id="gridViewBtn"
+                    class="btn btn-outline-primary active"
+                  >
+                    <i>📊</i> Grid
+                  </button>
+                  <button id="listViewBtn" class="btn btn-outline-primary">
+                    <i>📋</i> Lista
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Equipos -->
+      <div class="row mb-4">
+        <div class="col">
+          <div class="card">
+            <div
+              class="card-header d-flex justify-content-between align-items-center"
+            >
+              <h5 class="mb-0" id="countryTitle">Equipos</h5>
+              <button
+                id="refreshTeamsBtn"
+                class="btn btn-sm btn-outline-secondary"
+              >
+                🔄 Actualizar
+              </button>
+            </div>
+            <div class="card-body">
+              <div id="teamsContainer" class="row">
+                <div class="col-12 text-center py-5">
+                  <p class="text-muted">
+                    Selecciona un país y haz clic en "Cargar Equipos"
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Jugadores -->
+      <div class="row">
+        <div class="col">
+          <div class="card" id="playersSection" style="display: none">
+            <div
+              class="card-header d-flex justify-content-between align-items-center"
+            >
+              <h5 class="mb-0" id="playersTitle">Plantilla del Equipo</h5>
+              <button id="closePlayersBtn" class="btn btn-sm btn-danger">
+                ✖ Cerrar
+              </button>
+            </div>
+            <div class="card-body">
+              <!-- Info del equipo seleccionado -->
+              <div class="row mb-3" id="teamInfo" style="display: none">
+                <div class="col">
+                  <div class="d-flex align-items-center">
+                    <img
+                      id="teamBadge"
+                      src=""
+                      alt=""
+                      class="img-thumbnail me-3"
+                      style="width: 60px"
+                    />
+                    <div>
+                      <h6 id="teamName" class="mb-0"></h6>
+                      <small id="teamDetails" class="text-muted"></small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de jugadores -->
+              <div id="playersContainer" class="row">
+                <!-- Se llenará con JavaScript -->
+              </div>
+
+              <!-- Estado vacío -->
+              <div
+                id="emptyPlayers"
+                class="text-center py-4"
+                style="display: none"
+              >
+                <p class="text-muted">
+                  No hay información de jugadores disponible
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="mt-4 pt-3 border-top text-center">
+        <p class="text-muted">
+          Datos de
+          <a href="https://www.thesportsdb.com" target="_blank">TheSportsDB</a>
+          | <span id="totalTeams">0</span> equipos cargados
+        </p>
+      </footer>
+    </div>
+
+    <!-- Modales y alerts -->
+    <div
+      id="notification"
+      class="toast-container position-fixed top-0 end-0 p-3"
+    ></div>
+    <div
+      id="loadingOverlay"
+      class="position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none justify-content-center align-items-center"
+      style="z-index: 9999"
+    >
+      <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando...</p>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Nuestros módulos JavaScript -->
+    <script src="utils/apiService.js" type="module"></script>
+    <script src="utils/uiManager.js" type="module"></script>
+    <script src="utils/teamManager.js" type="module"></script>
+    <script src="utils/playerManager.js" type="module"></script>
+    <script src="utils/app.js" type="module"></script>
+  </body>
+</html>
