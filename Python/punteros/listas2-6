@@ -1,0 +1,848 @@
+"""
+SISTEMA DE LISTAS CON PUNTEROS SIMULADOS
+=========================================
+Este programa implementa 4 tipos de listas utilizando diccionarios para simular nodos:
+1. Listas enlazadas simples
+2. Listas doblemente enlazadas
+3. Listas circulares enlazadas
+4. Listas circulares doblemente enlazadas
+
+Valores permitidos: números enteros del 1 al 98
+0 = null/inicio de lista, 99 = null/final de lista
+
+Autor: [Tu Nombre]
+Fecha: [Fecha]
+"""
+
+import json
+import os
+
+# ============================================================================
+# CONSTANTES Y DEFINICIONES
+# ============================================================================
+
+VALOR_MINIMO = 1
+VALOR_MAXIMO = 98
+VALOR_NULL_INICIO = 0
+VALOR_NULL_FINAL = 99
+
+# ============================================================================
+# CLASE NODO BASE
+# ============================================================================
+
+class Nodo:
+    """
+    Clase base para todos los tipos de nodos.
+    Implementa la estructura básica usando diccionarios.
+    """
+    
+    def __init__(self, valor, tipo_lista):
+        """
+        Inicializa un nodo con el valor especificado.
+        
+        Args:
+            valor (int): Valor del nodo (1-98)
+            tipo_lista (str): Tipo de lista ('enlazada', 'enlazada_d', 'circular', 'circular_d')
+        """
+        self.valor = self._validar_valor(valor)
+        self.tipo_lista = tipo_lista
+        
+        # Estructura del diccionario del nodo
+        self.diccionario = {
+            'valor': self.valor,
+            'siguiente': None,
+            'anterior': None if tipo_lista in ['enlazada_d', 'circular_d'] else 'N/A'
+        }
+    
+    def _validar_valor(self, valor):
+        """
+        Valida que el valor esté en el rango permitido.
+        
+        Args:
+            valor (int): Valor a validar
+            
+        Returns:
+            int: Valor validado
+            
+        Raises:
+            ValueError: Si el valor no está en el rango permitido
+        """
+        if not isinstance(valor, int):
+            raise ValueError("El valor debe ser un número entero")
+        
+        if valor < VALOR_MINIMO or valor > VALOR_MAXIMO:
+            if valor != VALOR_NULL_INICIO and valor != VALOR_NULL_FINAL:
+                raise ValueError(f"El valor debe estar entre {VALOR_MINIMO} y {VALOR_MAXIMO}")
+        
+        return valor
+    
+    def actualizar_puntero(self, puntero, valor):
+        """
+        Actualiza un puntero del nodo.
+        
+        Args:
+            puntero (str): 'siguiente' o 'anterior'
+            valor: Valor del puntero
+        """
+        if puntero in self.diccionario:
+            self.diccionario[puntero] = valor
+    
+    def obtener_puntero(self, puntero):
+        """
+        Obtiene el valor de un puntero.
+        
+        Args:
+            puntero (str): 'siguiente' o 'anterior'
+            
+        Returns:
+            Valor del puntero
+        """
+        return self.diccionario.get(puntero)
+    
+    def __str__(self):
+        """
+        Representación en string del nodo.
+        """
+        return f"Nodo(valor={self.valor})"
+    
+    def to_dict(self):
+        """
+        Retorna el diccionario completo del nodo.
+        
+        Returns:
+            dict: Diccionario del nodo
+        """
+        return self.diccionario.copy()
+
+# ============================================================================
+# CLASE LISTA BASE
+# ============================================================================
+
+class ListaBase:
+    """
+    Clase base para todas las listas.
+    Implementa funcionalidades comunes.
+    """
+    
+    def __init__(self, tipo):
+        """
+        Inicializa una lista vacía.
+        
+        Args:
+            tipo (str): Tipo de lista
+        """
+        self.tipo = tipo
+        self.cabeza = None
+        self.cola = None
+        self.tamano = 0
+    
+    def crear_nodo(self, valor):
+        """
+        Crea un nuevo nodo con el valor especificado.
+        
+        Args:
+            valor (int): Valor del nodo
+            
+        Returns:
+            Nodo: Nuevo nodo creado
+        """
+        return Nodo(valor, self.tipo)
+    
+    def insertar_inicio(self, valor):
+        """
+        Inserta un nodo al inicio de la lista.
+        
+        Args:
+            valor (int): Valor del nodo a insertar
+            
+        Returns:
+            bool: True si se insertó correctamente
+        """
+        nuevo_nodo = self.crear_nodo(valor)
+        
+        if self.esta_vacia():
+            # Lista vacía
+            self.cabeza = nuevo_nodo
+            self.cola = nuevo_nodo
+            self._configurar_lista_vacia(nuevo_nodo)
+        else:
+            # Lista no vacía
+            nuevo_nodo.actualizar_puntero('siguiente', self.cabeza)
+            
+            if self.tiene_anteriores():
+                self.cabeza.actualizar_puntero('anterior', nuevo_nodo)
+            
+            self.cabeza = nuevo_nodo
+            
+            if self.es_circular():
+                self._configurar_circular_inicio()
+        
+        self.tamano += 1
+        return True
+    
+    def insertar_final(self, valor):
+        """
+        Inserta un nodo al final de la lista.
+        
+        Args:
+            valor (int): Valor del nodo a insertar
+            
+        Returns:
+            bool: True si se insertó correctamente
+        """
+        if self.esta_vacia():
+            print("Error: No se puede insertar al final en una lista vacía")
+            return False
+        
+        nuevo_nodo = self.crear_nodo(valor)
+        
+        if self.tiene_anteriores():
+            nuevo_nodo.actualizar_puntero('anterior', self.cola)
+        
+        self.cola.actualizar_puntero('siguiente', nuevo_nodo)
+        self.cola = nuevo_nodo
+        
+        if self.es_circular():
+            self._configurar_circular_final()
+        
+        self.tamano += 1
+        return True
+    
+    def insertar_nodo(self, valor, posicion=None):
+        """
+        Inserta un nodo en la posición especificada.
+        
+        Args:
+            valor (int): Valor del nodo a insertar
+            posicion (int, optional): Posición donde insertar
+            
+        Returns:
+            bool: True si se insertó correctamente
+        """
+        if posicion is None:
+            posicion = self.tamano // 2  # Posición media por defecto
+        
+        if posicion < 0 or posicion > self.tamano:
+            print(f"Error: Posición {posicion} fuera de rango")
+            return False
+        
+        if posicion == 0:
+            return self.insertar_inicio(valor)
+        elif posicion == self.tamano:
+            return self.insertar_final(valor)
+        
+        # Insertar en posición intermedia
+        nuevo_nodo = self.crear_nodo(valor)
+        actual = self.cabeza
+        
+        for i in range(posicion - 1):
+            actual = actual.obtener_puntero('siguiente')
+        
+        siguiente = actual.obtener_puntero('siguiente')
+        
+        # Actualizar punteros
+        actual.actualizar_puntero('siguiente', nuevo_nodo)
+        nuevo_nodo.actualizar_puntero('siguiente', siguiente)
+        
+        if self.tiene_anteriores():
+            nuevo_nodo.actualizar_puntero('anterior', actual)
+            if siguiente:
+                siguiente.actualizar_puntero('anterior', nuevo_nodo)
+        
+        self.tamano += 1
+        return True
+    
+    def eliminar_nodo(self, valor):
+        """
+        Elimina un nodo con el valor especificado.
+        
+        Args:
+            valor (int): Valor del nodo a eliminar
+            
+        Returns:
+            bool: True si se eliminó correctamente
+        """
+        if self.esta_vacia():
+            print("Error: La lista está vacía")
+            return False
+        
+        actual = self.cabeza
+        anterior = None
+        
+        while actual:
+            if actual.valor == valor:
+                # Nodo encontrado
+                if anterior is None:
+                    # Es el primer nodo
+                    self.cabeza = actual.obtener_puntero('siguiente')
+                    
+                    if self.cabeza and self.tiene_anteriores():
+                        self.cabeza.actualizar_puntero('anterior', None)
+                    
+                    if actual == self.cola:
+                        self.cola = None
+                else:
+                    # Nodo intermedio o final
+                    siguiente = actual.obtener_puntero('siguiente')
+                    anterior.actualizar_puntero('siguiente', siguiente)
+                    
+                    if siguiente and self.tiene_anteriores():
+                        siguiente.actualizar_puntero('anterior', anterior)
+                    
+                    if actual == self.cola:
+                        self.cola = anterior
+                
+                # Reconfigurar si es circular
+                if self.es_circular():
+                    self._configurar_circular()
+                
+                self.tamano -= 1
+                return True
+            
+            anterior = actual
+            actual = actual.obtener_puntero('siguiente')
+            
+            # Evitar bucle infinito en listas circulares
+            if actual == self.cabeza:
+                break
+        
+        print(f"Error: Nodo con valor {valor} no encontrado")
+        return False
+    
+    def buscar_nodo(self, valor):
+        """
+        Busca un nodo con el valor especificado.
+        
+        Args:
+            valor (int): Valor a buscar
+            
+        Returns:
+            dict or None: Diccionario del nodo si se encuentra, None si no
+        """
+        actual = self.cabeza
+        posicion = 0
+        
+        while actual:
+            if actual.valor == valor:
+                resultado = actual.to_dict()
+                resultado['posicion'] = posicion
+                return resultado
+            
+            actual = actual.obtener_puntero('siguiente')
+            posicion += 1
+            
+            # Evitar bucle infinito en listas circulares
+            if actual == self.cabeza:
+                break
+        
+        return None
+    
+    def contar_nodos(self):
+        """
+        Cuenta el número de nodos en la lista.
+        
+        Returns:
+            int: Número de nodos
+        """
+        return self.tamano
+    
+    def imprimir_valor_lista(self):
+        """
+        Imprime solo los valores de los nodos.
+        """
+        if self.esta_vacia():
+            print("Lista vacía")
+            return
+        
+        actual = self.cabeza
+        valores = []
+        
+        while actual:
+            valores.append(str(actual.valor))
+            actual = actual.obtener_puntero('siguiente')
+            
+            # Evitar bucle infinito en listas circulares
+            if actual == self.cabeza:
+                break
+        
+        print(" -> ".join(valores))
+    
+    def imprimir_lista_completa(self):
+        """
+        Imprime todos los campos de cada nodo.
+        """
+        if self.esta_vacia():
+            print("Lista vacía")
+            return
+        
+        actual = self.cabeza
+        posicion = 0
+        
+        print(f"\n{'='*60}")
+        print(f"LISTA COMPLETA - Tipo: {self.tipo}")
+        print(f"{'='*60}")
+        
+        while actual:
+            print(f"\nPosición: {posicion}")
+            print(f"Valor: {actual.valor}")
+            print(f"Siguiente: {self._formatear_puntero(actual.obtener_puntero('siguiente'))}")
+            
+            if self.tiene_anteriores():
+                print(f"Anterior: {self._formatear_puntero(actual.obtener_puntero('anterior'))}")
+            
+            actual = actual.obtener_puntero('siguiente')
+            posicion += 1
+            
+            # Evitar bucle infinito en listas circulares
+            if actual == self.cabeza:
+                break
+        
+        print(f"\nTotal nodos: {self.tamano}")
+        print(f"{'='*60}")
+    
+    def imprimir_reves(self):
+        """
+        Imprime la lista en orden inverso.
+        """
+        if self.esta_vacia():
+            print("Lista vacía")
+            return
+        
+        if not self.tiene_anteriores():
+            print("Error: Esta lista no soporta recorrido inverso")
+            return
+        
+        actual = self.cola
+        valores = []
+        
+        while actual:
+            valores.append(str(actual.valor))
+            actual = actual.obtener_puntero('anterior')
+            
+            # Evitar bucle infinito en listas circulares dobles
+            if actual == self.cola:
+                break
+        
+        print(" <- ".join(valores))
+    
+    def copiar_lista(self):
+        """
+        Copia la lista a un archivo de texto.
+        """
+        if self.esta_vacia():
+            print("Error: No se puede copiar una lista vacía")
+            return False
+        
+        nombre_archivo = f"lista_{self.tipo}.txt"
+        
+        try:
+            with open(nombre_archivo, 'w', encoding='utf-8') as archivo:
+                # Escribir cabecera
+                archivo.write("=" * 60 + "\n")
+                archivo.write(f"LISTA {self.tipo.upper()}\n")
+                archivo.write("=" * 60 + "\n\n")
+                
+                # Escribir información general
+                archivo.write(f"Tipo de lista: {self.tipo}\n")
+                archivo.write(f"Número de nodos: {self.tamano}\n")
+                archivo.write(f"Cabeza: {self.cabeza.valor if self.cabeza else 'None'}\n")
+                archivo.write(f"Cola: {self.cola.valor if self.cola else 'None'}\n\n")
+                
+                # Escribir nodos
+                archivo.write("NODOS:\n")
+                archivo.write("-" * 60 + "\n")
+                
+                actual = self.cabeza
+                posicion = 0
+                
+                while actual:
+                    archivo.write(f"\nNodo {posicion}:\n")
+                    archivo.write(f"  Valor: {actual.valor}\n")
+                    
+                    siguiente = actual.obtener_puntero('siguiente')
+                    archivo.write(f"  Siguiente: {siguiente.valor if siguiente else 'None'}\n")
+                    
+                    if self.tiene_anteriores():
+                        anterior = actual.obtener_puntero('anterior')
+                        archivo.write(f"  Anterior: {anterior.valor if anterior else 'None'}\n")
+                    
+                    actual = siguiente
+                    posicion += 1
+                    
+                    # Evitar bucle infinito
+                    if actual == self.cabeza:
+                        break
+                
+                # Diagrama de la lista
+                archivo.write("\n" + "=" * 60 + "\n")
+                archivo.write("DIAGRAMA DE LA LISTA:\n")
+                archivo.write("=" * 60 + "\n\n")
+                
+                actual = self.cabeza
+                diagrama = []
+                
+                while actual:
+                    nodo_str = f"[{actual.valor}]"
+                    
+                    if self.es_circular() and actual == self.cola:
+                        nodo_str += " → (vuelve a cabeza)"
+                    
+                    diagrama.append(nodo_str)
+                    actual = actual.obtener_puntero('siguiente')
+                    
+                    if actual == self.cabeza:
+                        break
+                
+                if self.es_circular():
+                    archivo.write(" → ".join(diagrama) + "\n")
+                else:
+                    archivo.write(" → ".join(diagrama) + " → NULL\n")
+            
+            print(f"Lista copiada exitosamente a '{nombre_archivo}'")
+            return True
+            
+        except Exception as e:
+            print(f"Error al copiar la lista: {e}")
+            return False
+    
+    # ============================================================================
+    # MÉTODOS AUXILIARES
+    # ============================================================================
+    
+    def esta_vacia(self):
+        """Verifica si la lista está vacía."""
+        return self.tamano == 0
+    
+    def tiene_anteriores(self):
+        """Verifica si la lista tiene punteros anteriores."""
+        return self.tipo in ['enlazada_d', 'circular_d']
+    
+    def es_circular(self):
+        """Verifica si la lista es circular."""
+        return self.tipo in ['circular', 'circular_d']
+    
+    def _configurar_lista_vacia(self, nodo):
+        """Configura una lista vacía según su tipo."""
+        if self.es_circular():
+            nodo.actualizar_puntero('siguiente', nodo)
+            if self.tiene_anteriores():
+                nodo.actualizar_puntero('anterior', nodo)
+    
+    def _configurar_circular_inicio(self):
+        """Configura punteros al insertar al inicio en lista circular."""
+        if self.es_circular():
+            self.cola.actualizar_puntero('siguiente', self.cabeza)
+            if self.tiene_anteriores():
+                self.cabeza.actualizar_puntero('anterior', self.cola)
+    
+    def _configurar_circular_final(self):
+        """Configura punteros al insertar al final en lista circular."""
+        if self.es_circular():
+            self.cabeza.actualizar_puntero('anterior', self.cola)
+            self.cola.actualizar_puntero('siguiente', self.cabeza)
+    
+    def _configurar_circular(self):
+        """Configura punteros circulares después de una operación."""
+        if self.es_circular() and not self.esta_vacia():
+            self.cabeza.actualizar_puntero('anterior', self.cola)
+            self.cola.actualizar_puntero('siguiente', self.cabeza)
+    
+    def _formatear_puntero(self, puntero):
+        """Formatea la representación de un puntero."""
+        if puntero is None:
+            return "None"
+        elif isinstance(puntero, Nodo):
+            return f"Nodo({puntero.valor})"
+        else:
+            return str(puntero)
+    
+    # ============================================================================
+    # MÉTODO EXTRA: ORDENAR LISTA
+    # ============================================================================
+    
+    def ordenar_lista(self):
+        """
+        Ordena la lista de menor a mayor usando el algoritmo de burbuja.
+        Este es un método extra voluntario.
+        
+        Returns:
+            bool: True si se ordenó correctamente
+        """
+        if self.esta_vacia() or self.tamano == 1:
+            return True
+        
+        print("Ordenando lista...")
+        
+        # Convertir lista a array para ordenar
+        valores = []
+        actual = self.cabeza
+        
+        while actual:
+            valores.append(actual.valor)
+            actual = actual.obtener_puntero('siguiente')
+            if actual == self.cabeza:
+                break
+        
+        # Ordenar valores
+        valores.sort()
+        
+        # Reconstruir lista con valores ordenados
+        self.cabeza = None
+        self.cola = None
+        self.tamano = 0
+        
+        for valor in valores:
+            self.insertar_final(valor)
+        
+        print("Lista ordenada correctamente")
+        return True
+
+# ============================================================================
+# CLASES ESPECÍFICAS DE LISTA
+# ============================================================================
+
+class ListaEnlazada(ListaBase):
+    """Lista simplemente enlazada."""
+    
+    def __init__(self):
+        super().__init__('enlazada')
+
+class ListaEnlazadaDoble(ListaBase):
+    """Lista doblemente enlazada."""
+    
+    def __init__(self):
+        super().__init__('enlazada_d')
+
+class ListaCircular(ListaBase):
+    """Lista circular simplemente enlazada."""
+    
+    def __init__(self):
+        super().__init__('circular')
+
+class ListaCircularDoble(ListaBase):
+    """Lista circular doblemente enlazada."""
+    
+    def __init__(self):
+        super().__init__('circular_d')
+
+# ============================================================================
+# FUNCIÓN PRINCIPAL - INTERFAZ DE USUARIO
+# ============================================================================
+
+def mostrar_menu():
+    """Muestra el menú principal."""
+    print("\n" + "="*60)
+    print("SISTEMA DE LISTAS CON PUNTEROS SIMULADOS")
+    print("="*60)
+    print("\nSeleccione el tipo de lista:")
+    print("1. Lista simplemente enlazada")
+    print("2. Lista doblemente enlazada")
+    print("3. Lista circular simplemente enlazada")
+    print("4. Lista circular doblemente enlazada")
+    print("5. Salir")
+    print("-"*60)
+
+def mostrar_operaciones():
+    """Muestra el menú de operaciones."""
+    print("\n" + "="*60)
+    print("OPERACIONES DISPONIBLES")
+    print("="*60)
+    print("1. Crear nodo")
+    print("2. Insertar al inicio")
+    print("3. Insertar al final")
+    print("4. Insertar en posición específica")
+    print("5. Eliminar nodo")
+    print("6. Contar nodos")
+    print("7. Buscar nodo")
+    print("8. Imprimir valores")
+    print("9. Imprimir lista completa")
+    print("10. Imprimir en reverso")
+    print("11. Copiar lista a archivo")
+    print("12. Ordenar lista (Extra)")
+    print("13. Volver al menú principal")
+    print("14. Salir")
+    print("-"*60)
+
+def obtener_valor():
+    """Obtiene y valida un valor del usuario."""
+    while True:
+        try:
+            valor = int(input("Ingrese el valor (1-98): "))
+            if valor < 1 or valor > 98:
+                print("Error: El valor debe estar entre 1 y 98")
+                continue
+            return valor
+        except ValueError:
+            print("Error: Ingrese un número válido")
+
+def obtener_posicion(max_pos):
+    """Obtiene y valida una posición del usuario."""
+    while True:
+        try:
+            pos = int(input(f"Ingrese la posición (0-{max_pos}): "))
+            if pos < 0 or pos > max_pos:
+                print(f"Error: La posición debe estar entre 0 y {max_pos}")
+                continue
+            return pos
+        except ValueError:
+            print("Error: Ingrese un número válido")
+
+def main():
+    """Función principal del programa."""
+    
+    lista_actual = None
+    
+    while True:
+        if lista_actual is None:
+            mostrar_menu()
+            
+            try:
+                opcion = int(input("\nSeleccione una opción (1-5): "))
+                
+                if opcion == 1:
+                    lista_actual = ListaEnlazada()
+                    print("\nLista simplemente enlazada creada")
+                elif opcion == 2:
+                    lista_actual = ListaEnlazadaDoble()
+                    print("\nLista doblemente enlazada creada")
+                elif opcion == 3:
+                    lista_actual = ListaCircular()
+                    print("\nLista circular simplemente enlazada creada")
+                elif opcion == 4:
+                    lista_actual = ListaCircularDoble()
+                    print("\nLista circular doblemente enlazada creada")
+                elif opcion == 5:
+                    print("\n¡Gracias por usar el sistema!")
+                    break
+                else:
+                    print("Opción no válida")
+                    continue
+                    
+            except ValueError:
+                print("Error: Ingrese un número válido")
+                continue
+        
+        # Menú de operaciones
+        mostrar_operaciones()
+        
+        try:
+            opcion = int(input("\nSeleccione una operación (1-14): "))
+            
+            if opcion == 1:
+                # Crear nodo
+                valor = obtener_valor()
+                nodo = lista_actual.crear_nodo(valor)
+                print(f"\nNodo creado: {nodo}")
+                
+            elif opcion == 2:
+                # Insertar al inicio
+                valor = obtener_valor()
+                if lista_actual.insertar_inicio(valor):
+                    print(f"\nNodo con valor {valor} insertado al inicio")
+                
+            elif opcion == 3:
+                # Insertar al final
+                if lista_actual.esta_vacia():
+                    print("\nError: No se puede insertar al final en lista vacía")
+                else:
+                    valor = obtener_valor()
+                    if lista_actual.insertar_final(valor):
+                        print(f"\nNodo con valor {valor} insertado al final")
+                
+            elif opcion == 4:
+                # Insertar en posición específica
+                valor = obtener_valor()
+                posicion = obtener_posicion(lista_actual.tamano)
+                if lista_actual.insertar_nodo(valor, posicion):
+                    print(f"\nNodo con valor {valor} insertado en posición {posicion}")
+                
+            elif opcion == 5:
+                # Eliminar nodo
+                if lista_actual.esta_vacia():
+                    print("\nError: La lista está vacía")
+                else:
+                    valor = obtener_valor()
+                    if lista_actual.eliminar_nodo(valor):
+                        print(f"\nNodo con valor {valor} eliminado")
+                
+            elif opcion == 6:
+                # Contar nodos
+                print(f"\nLa lista tiene {lista_actual.contar_nodos()} nodos")
+                
+            elif opcion == 7:
+                # Buscar nodo
+                if lista_actual.esta_vacia():
+                    print("\nError: La lista está vacía")
+                else:
+                    valor = obtener_valor()
+                    resultado = lista_actual.buscar_nodo(valor)
+                    if resultado:
+                        print(f"\nNodo encontrado:")
+                        print(f"  Valor: {resultado['valor']}")
+                        print(f"  Posición: {resultado['posicion']}")
+                        print(f"  Siguiente: {resultado['siguiente'].valor if resultado['siguiente'] else 'None'}")
+                        if 'anterior' in resultado:
+                            print(f"  Anterior: {resultado['anterior'].valor if resultado['anterior'] else 'None'}")
+                    else:
+                        print(f"\nNodo con valor {valor} no encontrado")
+                
+            elif opcion == 8:
+                # Imprimir valores
+                print("\nValores de la lista:")
+                lista_actual.imprimir_valor_lista()
+                
+            elif opcion == 9:
+                # Imprimir lista completa
+                lista_actual.imprimir_lista_completa()
+                
+            elif opcion == 10:
+                # Imprimir en reverso
+                if lista_actual.esta_vacia():
+                    print("\nError: La lista está vacía")
+                else:
+                    print("\nLista en orden inverso:")
+                    lista_actual.imprimir_reves()
+                
+            elif opcion == 11:
+                # Copiar lista a archivo
+                lista_actual.copiar_lista()
+                
+            elif opcion == 12:
+                # Ordenar lista (Extra)
+                if lista_actual.esta_vacia():
+                    print("\nError: La lista está vacía")
+                else:
+                    lista_actual.ordenar_lista()
+                
+            elif opcion == 13:
+                # Volver al menú principal
+                lista_actual = None
+                print("\nVolviendo al menú principal...")
+                
+            elif opcion == 14:
+                # Salir
+                print("\n¡Gracias por usar el sistema!")
+                break
+                
+            else:
+                print("Opción no válida")
+                
+        except ValueError:
+            print("Error: Ingrese un número válido")
+        except Exception as e:
+            print(f"Error inesperado: {e}")
+
+# ============================================================================
+# EJECUCIÓN DEL PROGRAMA
+# ============================================================================
+
+if __name__ == "__main__":
+    print("="*60)
+    print("SISTEMA DE LISTAS CON PUNTEROS SIMULADOS")
+    print("="*60)
+    print("\nEste programa implementa 4 tipos de listas usando diccionarios")
+    print("para simular punteros. Valores permitidos: 1-98")
+    print("0 = null/inicio, 99 = null/final\n")
+    
+    input("Presione Enter para comenzar...")
+    main()

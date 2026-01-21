@@ -1,0 +1,239 @@
+"""
+SISTEMA DE COLAS - ANIMALES VERTEBRADOS
+"""
+
+class Cola:
+    """Cola FIFO usando lista enlazada"""
+    class Nodo:
+        def __init__(self, animal):
+            self.animal = animal
+            self.sig = None
+    
+    def __init__(self, nombre="Principal"):
+        self.frente = None
+        self.final = None
+        self.tam = 0
+        self.nombre = nombre
+    
+    def vacia(self):
+        return self.frente is None
+    
+    def encolar(self, animal):
+        if not animal.strip():
+            print("Error: Animal inválido")
+            return False
+        
+        nuevo = self.Nodo(animal.strip())
+        
+        if self.vacia():
+            self.frente = nuevo
+        else:
+            self.final.sig = nuevo
+        
+        self.final = nuevo
+        self.tam += 1
+        print(f"✓ '{animal}' encolado")
+        return True
+    
+    def desencolar(self):
+        if self.vacia():
+            print("Cola vacía")
+            return None
+        
+        animal = self.frente.animal
+        self.frente = self.frente.sig
+        
+        if self.frente is None:
+            self.final = None
+        
+        self.tam -= 1
+        print(f"✓ Desencolado: {animal}")
+        return animal
+    
+    def ver_frente(self):
+        return self.frente.animal if self.frente else None
+    
+    def mostrar(self):
+        if self.vacia():
+            print(f"{self.nombre}: [VACÍA]")
+            return
+        
+        print(f"\n{self.nombre} ({self.tam} animales):")
+        print("FRENTE →", end=" ")
+        
+        actual = self.frente
+        while actual:
+            print(actual.animal, end=" → " if actual.sig else "")
+            actual = actual.sig
+        
+        print(" FINAL")
+    
+    def contar(self):
+        return self.tam
+    
+    def invertir(self):
+        invertida = Cola(f"{self.nombre}_inv")
+        pila = []
+        
+        actual = self.frente
+        while actual:
+            pila.append(actual.animal)
+            actual = actual.sig
+        
+        for animal in reversed(pila):
+            invertida.encolar(animal)
+        
+        return invertida
+    
+    def copiar(self):
+        copia = Cola(f"{self.nombre}_copia")
+        actual = self.frente
+        
+        while actual:
+            copia.encolar(actual.animal)
+            actual = actual.sig
+        
+        return copia
+    
+    def vaciar(self):
+        while not self.vacia():
+            self.desencolar()
+        print("✓ Cola vaciada")
+    
+    def guardar(self, archivo="cola_animales.txt"):
+        try:
+            with open(archivo, 'w', encoding='utf-8') as f:
+                f.write(f"COLA: {self.nombre}\n")
+                f.write(f"Total animales: {self.tam}\n")
+                f.write(f"Frente: {self.ver_frente()}\n")
+                f.write("-" * 30 + "\n")
+                
+                actual = self.frente
+                while actual:
+                    f.write(f"{actual.animal}\n")
+                    actual = actual.sig
+            print(f"✓ Guardado en {archivo}")
+            return True
+        except:
+            print("✗ Error al guardar")
+            return False
+
+# ========== SISTEMA PRINCIPAL ==========
+
+def menu_principal():
+    """Menú principal simplificado"""
+    
+    # Inicializar sistema
+    colas = {"Principal": Cola("Principal")}
+    cola_activa = "Principal"
+    
+    while True:
+        print(f"\n{'='*40}")
+        print(f"COLA ACTIVA: {cola_activa}")
+        print(f"{'='*40}")
+        print("1. Encolar animal")
+        print("2. Desencolar")
+        print("3. Ver frente")
+        print("4. Mostrar cola")
+        print("5. Contar animales")
+        print("6. Invertir cola")
+        print("7. Copiar cola")
+        print("8. Vaciar cola")
+        print("9. Guardar cola")
+        print("10. Cambiar cola")
+        print("11. Crear nueva cola")
+        print("0. Salir")
+        print("-"*40)
+        
+        try:
+            opcion = input("Opción: ").strip()
+            
+            if opcion == "0":
+                print("\n¡Hasta pronto! 🐾")
+                break
+            
+            # 1. ENCOLAR
+            elif opcion == "1":
+                animal = input("Animal vertebrado: ").strip()
+                colas[cola_activa].encolar(animal)
+            
+            # 2. DESENCOLAR
+            elif opcion == "2":
+                colas[cola_activa].desencolar()
+            
+            # 3. VER FRENTE
+            elif opcion == "3":
+                frente = colas[cola_activa].ver_frente()
+                print(f"Frente: {frente if frente else 'Cola vacía'}")
+            
+            # 4. MOSTRAR COLA
+            elif opcion == "4":
+                colas[cola_activa].mostrar()
+            
+            # 5. CONTAR
+            elif opcion == "5":
+                print(f"Animales en cola: {colas[cola_activa].contar()}")
+            
+            # 6. INVERTIR
+            elif opcion == "6":
+                invertida = colas[cola_activa].invertir()
+                colas[invertida.nombre] = invertida
+                print(f"✓ Cola invertida creada: {invertida.nombre}")
+            
+            # 7. COPIAR
+            elif opcion == "7":
+                copia = colas[cola_activa].copiar()
+                colas[copia.nombre] = copia
+                print(f"✓ Copia creada: {copia.nombre}")
+            
+            # 8. VACIAR
+            elif opcion == "8":
+                if input("¿Seguro? (s/n): ").lower() == 's':
+                    colas[cola_activa].vaciar()
+            
+            # 9. GUARDAR
+            elif opcion == "9":
+                archivo = input("Nombre archivo (Enter para 'cola_animales.txt'): ").strip()
+                if not archivo:
+                    archivo = "cola_animales.txt"
+                colas[cola_activa].guardar(archivo)
+            
+            # 10. CAMBIAR COLA
+            elif opcion == "10":
+                print("\nColas disponibles:")
+                for i, nombre in enumerate(colas.keys(), 1):
+                    print(f"  {i}. {nombre}")
+                
+                try:
+                    num = int(input("Número: ")) - 1
+                    nombres = list(colas.keys())
+                    if 0 <= num < len(nombres):
+                        cola_activa = nombres[num]
+                        print(f"✓ Cola activa: {cola_activa}")
+                except:
+                    print("✗ Opción inválida")
+            
+            # 11. CREAR NUEVA COLA
+            elif opcion == "11":
+                nombre = input("Nombre de la nueva cola: ").strip()
+                if nombre and nombre not in colas:
+                    colas[nombre] = Cola(nombre)
+                    cola_activa = nombre
+                    print(f"✓ Nueva cola '{nombre}' creada")
+                else:
+                    print("✗ Nombre inválido o ya existe")
+            
+            else:
+                print("✗ Opción inválida")
+                
+        except Exception as e:
+            print(f"✗ Error: {e}")
+
+# ========== EJECUCIÓN ==========
+
+if __name__ == "__main__":
+    print("\n" + "🐾" * 20)
+    print("  SISTEMA DE COLAS - ANIMALES VERTEBRADOS")
+    print("🐾" * 20)
+    
+    menu_principal()

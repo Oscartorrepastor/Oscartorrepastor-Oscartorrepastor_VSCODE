@@ -1,0 +1,211 @@
+"""
+SISTEMA DE PILAS OPTIMIZADO - MARCAS DE COCHES
+Implementación minimalista pero funcional
+"""
+
+class Pila:
+    """Pila LIFO usando lista enlazada"""
+    class Nodo:
+        __slots__ = ('marca', 'sig')  # Optimiza memoria
+        
+        def __init__(self, marca):
+            self.marca = marca
+            self.sig = None
+    
+    def __init__(self, nombre="Principal"):
+        self.tope = None
+        self.tam = 0
+        self.nombre = nombre
+    
+    def vacia(self):
+        return self.tope is None
+    
+    def apilar(self, marca):
+        if not marca or not marca.strip():
+            return False
+        
+        nuevo = self.Nodo(marca.strip())
+        nuevo.sig = self.tope
+        self.tope = nuevo
+        self.tam += 1
+        return True
+    
+    def desapilar(self):
+        if self.vacia():
+            return None
+        marca = self.tope.marca
+        self.tope = self.tope.sig
+        self.tam -= 1
+        return marca
+    
+    def ver_tope(self):
+        return self.tope.marca if self.tope else None
+    
+    def mostrar(self):
+        if self.vacia():
+            print(f"{self.nombre}: [VACÍA]")
+            return
+        
+        print(f"\n{self.nombre} ({self.tam} elementos):")
+        print("TOPE")
+        print("────")
+        
+        actual = self.tope
+        while actual:
+            print(f"  🚗 {actual.marca}")
+            actual = actual.sig
+        
+        print("────")
+        print("BASE")
+    
+    def contar(self):
+        return self.tam
+    
+    def invertir(self):
+        invertida = Pila(f"{self.nombre}_inv")
+        actual = self.tope
+        while actual:
+            invertida.apilar(actual.marca)
+            actual = actual.sig
+        return invertida
+    
+    def copiar(self):
+        copia = Pila(f"{self.nombre}_copy")
+        temp = Pila("temp")
+        
+        # Apilar en temp (invierte orden)
+        actual = self.tope
+        while actual:
+            temp.apilar(actual.marca)
+            actual = actual.sig
+        
+        # Apilar en copia (revierte a orden original)
+        actual_temp = temp.tope
+        while actual_temp:
+            copia.apilar(actual_temp.marca)
+            actual_temp = actual_temp.sig
+        
+        return copia
+    
+    def vaciar(self):
+        while not self.vacia():
+            self.desapilar()
+    
+    def guardar(self, archivo="pila.txt"):
+        try:
+            with open(archivo, 'w') as f:
+                f.write(f"Pila: {self.nombre}\n")
+                f.write(f"Elementos: {self.tam}\n")
+                f.write(f"Tope: {self.ver_tope() or 'Ninguno'}\n\n")
+                
+                actual = self.tope
+                while actual:
+                    f.write(f"{actual.marca}\n")
+                    actual = actual.sig
+            return True
+        except:
+            return False
+
+class SistemaPilas:
+    """Sistema principal simplificado"""
+    
+    def __init__(self):
+        self.pilas = {"Principal": Pila("Principal")}
+        self.activa = "Principal"
+    
+    def menu_principal(self):
+        opciones = [
+            ("1. Apilar", self.apilar),
+            ("2. Desapilar", self.desapilar),
+            ("3. Ver tope", self.ver_tope),
+            ("4. Mostrar pila", self.mostrar),
+            ("5. Contar", self.contar),
+            ("6. Invertir", self.invertir),
+            ("7. Copiar", self.copiar),
+            ("8. Vaciar", self.vaciar),
+            ("9. Guardar", self.guardar),
+            ("10. Cambiar pila", self.cambiar_pila),
+            ("0. Salir", self.salir)
+        ]
+        
+        while True:
+            print(f"\n{'='*40}")
+            print(f"PILA ACTIVA: {self.activa}")
+            print(f"{'='*40}")
+            
+            for texto, _ in opciones:
+                print(texto)
+            
+            try:
+                opc = int(input("\nOpción: "))
+                if opc == 0:
+                    break
+                if 1 <= opc <= len(opciones):
+                    opciones[opc-1][1]()
+                else:
+                    print("Opción inválida")
+            except:
+                print("Error: Entrada no válida")
+    
+    def apilar(self):
+        marca = input("Marca: ").strip()
+        if self.pilas[self.activa].apilar(marca):
+            print(f"✓ '{marca}' apilado")
+    
+    def desapilar(self):
+        marca = self.pilas[self.activa].desapilar()
+        print(f"✓ Desapilado: {marca}" if marca else "✗ Pila vacía")
+    
+    def ver_tope(self):
+        tope = self.pilas[self.activa].ver_tope()
+        print(f"Tope: {tope}" if tope else "Pila vacía")
+    
+    def mostrar(self):
+        self.pilas[self.activa].mostrar()
+    
+    def contar(self):
+        print(f"Elementos: {self.pilas[self.activa].contar()}")
+    
+    def invertir(self):
+        inv = self.pilas[self.activa].invertir()
+        self.pilas[inv.nombre] = inv
+        print(f"✓ Pila invertida creada: {inv.nombre}")
+    
+    def copiar(self):
+        copy = self.pilas[self.activa].copiar()
+        self.pilas[copy.nombre] = copy
+        print(f"✓ Copia creada: {copy.nombre}")
+    
+    def vaciar(self):
+        if input("¿Seguro? (s/n): ").lower() == 's':
+            self.pilas[self.activa].vaciar()
+            print("✓ Pila vaciada")
+    
+    def guardar(self):
+        if self.pilas[self.activa].guardar():
+            print("✓ Pila guardada en pila.txt")
+        else:
+            print("✗ Error al guardar")
+    
+    def cambiar_pila(self):
+        print("\nPilas disponibles:")
+        for i, nombre in enumerate(self.pilas.keys(), 1):
+            print(f"  {i}. {nombre}")
+        
+        try:
+            opc = int(input("Seleccione: ")) - 1
+            nombres = list(self.pilas.keys())
+            if 0 <= opc < len(nombres):
+                self.activa = nombres[opc]
+                print(f"✓ Pila activa: {self.activa}")
+        except:
+            print("Selección inválida")
+    
+    def salir(self):
+        print("¡Hasta pronto!")
+        exit()
+
+# Ejecución principal
+if __name__ == "__main__":
+    print("\n🚗 SISTEMA DE PILAS - MARCAS DE COCHES 🚗")
+    SistemaPilas().menu_principal()
